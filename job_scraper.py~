@@ -1,0 +1,42 @@
+import requests
+from bs4 import BeautifulSoup
+
+# Test requests
+response = requests.get('https://example.com')
+print("Requests is working, status code:", response.status_code)
+
+# Test BeautifulSoup
+soup = BeautifulSoup("<html><body><h1>Hello World</h1></body></html>", 'html.parser')
+print("BeautifulSoup is working, parsed h1 text:", soup.h1.text)
+
+
+def scrape_job_listings(url):
+    # Send a GET request to the URL
+    response = requests.get(url)
+    
+    # Check if the request was successful
+    if response.status_code == 200:
+        # Parse the HTML content of the page
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        # Debug: print the parsed HTML to verify the content
+        print(soup.prettify())
+        
+        # Extract job titles, checking the presence of 'job' in href and specific class presence
+        job_titles = [title.text.strip() for title in soup.find_all('a', href=True) if 'job' in title['href'] and 'font-weight-bold' in title.get('class', [])]
+        
+        # Check if job titles were found and return them
+        if job_titles:
+            return job_titles
+        else:
+            print("No job titles found, check selector or page content.")
+            return []
+    else:
+        # Print an error message if the request was not successful
+        print(f"Failed to fetch {url}. Status code: {response.status_code}")
+        return []
+
+# Example usage
+url = 'https://remote.co/remote-jobs/'
+job_titles = scrape_job_listings(url)
+print("Job Titles:", job_titles)
